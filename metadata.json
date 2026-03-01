@@ -1,0 +1,5 @@
+{
+  "name": "Dictation & Cleanup",
+  "description": "Audio transcription and cleanup tool using Gemini 3 Flash.",
+  "requestFramePermissions": ["microphone"]
+}
