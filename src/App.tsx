@@ -60,7 +60,7 @@ export default function App() {
         const base64String = base64data.split(',')[1];
 
         const response = await ai.models.generateContent({
-          model: 'gemini-1.5-flash',
+          model: 'gemini-3-flash-preview',
           contents: [
             {
               parts: [
