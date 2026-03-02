@@ -61,7 +61,7 @@ export default function App() {
       reader.onloadend = async () => {
         try {
           const base64String = (reader.result as string).split(',')[1];
-          const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+          const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
           
           const result = await model.generateContent([
             { inlineData: { mimeType: blob.type, data: base64String } },
