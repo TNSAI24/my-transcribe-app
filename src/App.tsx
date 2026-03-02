@@ -1,128 +1,146 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
+import { Mic, Square, Copy, Check, Loader2, RotateCcw } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import './App.css';
 
-// 1. Initialize the AI with your exact environment variable
 const ai = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
-function App() {
+export default function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
-  
-  // NEW: State to hold and display errors
-  const [errorMessage, setErrorMessage] = useState('');
-  
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [format, setFormat] = useState('bullets');
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
+  const handleRefresh = () => {
+    setTranscript('');
+    setError('');
+  };
+
   const startRecording = async () => {
     try {
-      setErrorMessage(''); // Clear previous errors when starting a new recording
-      setTranscript('');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
       };
 
       mediaRecorder.onstop = async () => {
-        setIsProcessing(true);
-        try {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          await processAudioWithGemini(audioBlob);
-        } catch (error: any) {
-          console.error("Processing Error:", error);
-          setErrorMessage(error.message || "An error occurred while processing the audio.");
-        } finally {
-          setIsProcessing(false);
-          stream.getTracks().forEach(track => track.stop());
-        }
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await processAudio(audioBlob);
       };
 
       mediaRecorder.start();
       setIsRecording(true);
-    } catch (error: any) {
-      console.error("Microphone Error:", error);
-      setErrorMessage("Could not access the microphone. Please check your permissions.");
+      setError('');
+    } catch (err) {
+      setError('Microphone access denied.');
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+    if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
   };
 
-  const processAudioWithGemini = async (audioBlob: Blob) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(audioBlob);
-    
-    reader.onloadend = async () => {
-      const base64Audio = reader.result as string;
-      const base64Data = base64Audio.split(',')[1];
+  const processAudio = async (blob: Blob) => {
+    setIsProcessing(true);
+    setError('');
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = async () => {
+        try {
+          const base64String = (reader.result as string).split(',')[1];
+          const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+          
+          const result = await model.generateContent([
+            { inlineData: { mimeType: blob.type, data: base64String } },
+            { text: `Clean this audio. Format as: ${format}. Preserve SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.` }
+          ]);
 
-      // NEW: The Safety Net (try...catch block)
-      try {
-        const model = ai.getGenerativeModel({
-          model: 'gemini-2.0-flash',
-          systemInstruction: "You are a highly accurate dictation assistant. Carefully transcribe the user's speech. Pay special attention to technical and specific terms like SAP FICO, Vibe Coding, Kadugu, and Perungayam."
-        });
+          setTranscript(result.response.text());
+        } catch (genError: any) {
+          setError(`AI Error: ${genError.message}`);
+        } finally {
+          setIsProcessing(false);
+        }
+      };
+    } catch (err: any) {
+      setError(`Processing failed: ${err.message}`);
+      setIsProcessing(false);
+    }
+  };
 
-        const result = await model.generateContent([
-          {
-            inlineData: {
-              mimeType: audioBlob.type,
-              data: base64Data
-            }
-          },
-          "Please transcribe this audio accurately."
-        ]);
-
-        setTranscript(result.response.text());
-        
-      } catch (error: any) {
-        console.error("Gemini API Error:", error);
-        // If Google rejects the request, we catch it here and display it on the screen!
-        setErrorMessage(`Google AI Error: ${error.message}`);
-      }
-    };
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(transcript);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="container" style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>Vibe Dictation</h1>
-      
-      {/* NEW: The Error Display Box */}
-      {errorMessage && (
-        <div style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #ef9a9a' }}>
-          <strong>Error Caught:</strong> {errorMessage}
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-slate-800">Vibe Dictation</h1>
+          <div className="flex items-center gap-2">
+            <select 
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+              className="bg-slate-100 border-none rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="bullets">Bullets</option>
+              <option value="paragraph">Paragraph</option>
+              <option value="email">Email</option>
+            </select>
+            <button onClick={handleRefresh} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+              <RotateCcw className="w-5 h-5 text-slate-600" />
+            </button>
+          </div>
         </div>
-      )}
 
-      <div className="controls" style={{ marginBottom: '20px' }}>
-        {!isRecording ? (
-          <button onClick={startRecording} disabled={isProcessing} style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#e0e0e0', border: 'none' }}>
-            {isProcessing ? 'Processing Audio...' : 'Start Recording'}
-          </button>
-        ) : (
-          <button onClick={stopRecording} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#d32f2f', color: 'white', cursor: 'pointer', borderRadius: '5px', border: 'none' }}>
-            Stop Recording
-          </button>
-        )}
-      </div>
+        <div className="relative h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-4 overflow-auto">
+          {isProcessing ? (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <p>Cleaning up your vibe...</p>
+            </div>
+          ) : transcript ? (
+            <div className="prose prose-slate max-w-none">{transcript}</div>
+          ) : (
+            <div className="h-full flex items-center justify-center text-slate-400">
+              {error ? <span className="text-red-500 font-medium">{error}</span> : "Start speaking..."}
+            </div>
+          )}
+        </div>
 
-      <div className="output-area" style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', minHeight: '150px', whiteSpace: 'pre-wrap', backgroundColor: '#f9f9f9' }}>
-        {transcript || <span style={{ color: '#888' }}>Your transcription will appear here...</span>}
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={isProcessing}
+            className={`flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white transition-all transform hover:scale-105 ${
+              isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'
+            } disabled:opacity-50 disabled:scale-100`}
+          >
+            {isRecording ? <><Square className="w-5 h-5 fill-current" /> Stop Recording</> : <><Mic className="w-5 h-5" /> Start Recording</>}
+          </button>
+
+          {transcript && (
+            <button onClick={copyToClipboard} className="p-4 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+              {copied ? <Check className="w-6 h-6 text-green-600" /> : <Copy className="w-6 h-6 text-slate-600" />}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
-
-export default App;
