@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Mic, Square, Copy, Check, Loader2, RotateCcw } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
 export default function App() {
   const [isRecording, setIsRecording] = useState(false);
