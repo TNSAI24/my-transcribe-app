@@ -115,7 +115,8 @@ export default function App() {
               <p>Cleaning up your vibe...</p>
             </div>
           ) : transcript ? (
-            <div className="prose prose-slate max-w-none">{transcript}</div>
+            {/* The fix is exactly here on the line below! */}
+            <div className="prose prose-slate max-w-none whitespace-pre-wrap">{transcript}</div>
           ) : (
             <div className="h-full flex items-center justify-center text-slate-400">
               {error ? <span className="text-red-500 font-medium">{error}</span> : "Start speaking..."}
