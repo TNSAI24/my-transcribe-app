@@ -164,9 +164,17 @@ Do not include any other conversational text. Preserve terms like SAP FICO, Vibe
           </button>
 
           {transcript && (
-            <button onClick={copyToClipboard} className="p-4 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-              {copied ? <Check className="w-6 h-6 text-green-600" /> : <Copy className="w-6 h-6 text-slate-600" />}
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={sendToGemini}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors font-medium text-sm"
+              >
+                Send to Gemini
+              </button>
+              <button onClick={copyToClipboard} className="p-4 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+                {copied ? <Check className="w-6 h-6 text-green-600" /> : <Copy className="w-6 h-6 text-slate-600" />}
+              </button>
+            </div>
           )}
         </div>
       </div>
