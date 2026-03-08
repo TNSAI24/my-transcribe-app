@@ -66,7 +66,7 @@ export default function App() {
           let promptText = `Clean this audio. Format as: ${format}. Preserve SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.`;
           
           if (format === 'prompt') {
-            promptText = `Analyze the provided audio transcript. Extract the key information and output it STRICTLY in the following format with these exact labels:
+            promptText = `Analyze the provided audio transcript. Extract the key information and output it STRICTLY in the following format with bolded labels:
 **a. Objective:** [Determine the main goal]
 **b. Context:** [Identify any background information]
 **c. Task:** [Specify the exact action required]
@@ -99,10 +99,11 @@ Do not include any other conversational text. Preserve terms like SAP FICO, Vibe
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // --- THIS WAS THE MISSING PIECE ---
   const sendToGemini = () => {
+    if (!transcript) return;
+    // 'q' is currently the most stable parameter for auto-filling the Gemini prompt box
     const encodedPrompt = encodeURIComponent(transcript);
-    window.open(`https://gemini.google.com/app?prompt=${encodedPrompt}`, '_blank');
+    window.open(`https://gemini.google.com/app?q=${encodedPrompt}`, '_blank');
   };
 
   return (
