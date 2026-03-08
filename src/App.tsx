@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Mic, Square, Copy, Check, Loader2, RotateCcw } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -63,9 +64,23 @@ export default function App() {
           const base64String = (reader.result as string).split(',')[1];
           const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash'});
           
+          // --- NEW: Dynamic Prompt Logic ---
+          let promptText = `Clean this audio. Format as: ${format}. Preserve SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.`;
+          
+          if (format === 'prompt') {
+            promptText = `Analyze the provided audio transcript. Extract the key information and output it STRICTLY in the following format with these exact labels:
+a. Objective: [Determine the main goal]
+b. Context: [Identify any background information]
+c. Task: [Specify the exact action required]
+d. Output Format: [Identify how the final result should look]
+
+Do not include any other conversational text. Preserve terms like SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.`;
+          }
+          // ---------------------------------
+
           const result = await model.generateContent([
             { inlineData: { mimeType: blob.type, data: base64String } },
-            { text: `Clean this audio. Format as: ${format}. Preserve SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.` }
+            { text: promptText }
           ]);
 
           setTranscript(result.response.text());
@@ -86,7 +101,8 @@ export default function App() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-return (
+
+  return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
         <div className="flex items-center justify-between">
