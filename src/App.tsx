@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Mic, Square, Copy, Check, Loader2, RotateCcw } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -64,7 +63,6 @@ export default function App() {
           const base64String = (reader.result as string).split(',')[1];
           const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash'});
           
-          // --- NEW: Dynamic Prompt Logic ---
           let promptText = `Clean this audio. Format as: ${format}. Preserve SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.`;
           
           if (format === 'prompt') {
@@ -76,7 +74,6 @@ export default function App() {
 
 Do not include any other conversational text. Preserve terms like SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.`;
           }
-          // ---------------------------------
 
           const result = await model.generateContent([
             { inlineData: { mimeType: blob.type, data: base64String } },
@@ -102,6 +99,12 @@ Do not include any other conversational text. Preserve terms like SAP FICO, Vibe
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // --- THIS WAS THE MISSING PIECE ---
+  const sendToGemini = () => {
+    const encodedPrompt = encodeURIComponent(transcript);
+    window.open(`https://gemini.google.com/app?prompt=${encodedPrompt}`, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
@@ -125,8 +128,6 @@ Do not include any other conversational text. Preserve terms like SAP FICO, Vibe
         </div>
 
         <div className="relative h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-4 overflow-auto">
-          
-          {/* NEW: The Smart Ghost Overlay */}
           {isRecording && format === 'prompt' && !isProcessing && (
             <div className="absolute inset-0 p-4 pointer-events-none text-slate-400 flex flex-col gap-2 z-10">
               <p className="font-semibold text-slate-500 mb-1">Speak to fill out your prompt:</p>
@@ -137,7 +138,6 @@ Do not include any other conversational text. Preserve terms like SAP FICO, Vibe
             </div>
           )}
 
-          {/* EXISTING: Your Processing Animation */}
           {isProcessing ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
