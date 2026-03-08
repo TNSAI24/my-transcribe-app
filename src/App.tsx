@@ -101,7 +101,7 @@ Do not include any other conversational text. Preserve terms like SAP FICO, Vibe
 
   const sendToGemini = () => {
     if (!transcript) return;
-    // 'q' is currently the most stable parameter for auto-filling the Gemini prompt box
+    // Using 'q' (query) is the most stable parameter for auto-filling the box in 2026
     const encodedPrompt = encodeURIComponent(transcript);
     window.open(`https://gemini.google.com/app?q=${encodedPrompt}`, '_blank');
   };
