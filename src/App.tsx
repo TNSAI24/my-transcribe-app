@@ -109,7 +109,7 @@ export default function App() {
           </div>
         </div>
 
-<div className="relative h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-4 overflow-auto">
+        <div className="relative h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-4 overflow-auto">
           
           {/* NEW: The Smart Ghost Overlay */}
           {isRecording && format === 'prompt' && !isProcessing && (
@@ -123,11 +123,6 @@ export default function App() {
           )}
 
           {/* EXISTING: Your Processing Animation */}
-          {isProcessing ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-              <p>Cleaning up your vibe...</p>
-            </div>
           {isProcessing ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
