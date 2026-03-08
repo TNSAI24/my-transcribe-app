@@ -69,10 +69,10 @@ export default function App() {
           
           if (format === 'prompt') {
             promptText = `Analyze the provided audio transcript. Extract the key information and output it STRICTLY in the following format with these exact labels:
-a. Objective: [Determine the main goal]
-b. Context: [Identify any background information]
-c. Task: [Specify the exact action required]
-d. Output Format: [Identify how the final result should look]
+**a. Objective:** [Determine the main goal]
+**b. Context:** [Identify any background information]
+**c. Task:** [Specify the exact action required]
+**d. Output Format:** [Identify how the final result should look]
 
 Do not include any other conversational text. Preserve terms like SAP FICO, Vibe Coding, Raga, Kadugu, Perungayam.`;
           }
