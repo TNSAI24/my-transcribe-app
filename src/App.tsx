@@ -109,7 +109,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="relative h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-4 overflow-auto">
+<div className="relative h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-4 overflow-auto">
           
           {/* NEW: The Smart Ghost Overlay */}
           {isRecording && format === 'prompt' && !isProcessing && (
