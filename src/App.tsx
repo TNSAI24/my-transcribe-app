@@ -101,6 +101,7 @@ export default function App() {
               <option value="bullets">Bullets</option>
               <option value="paragraph">Paragraph</option>
               <option value="email">Email</option>
+              <option value="prompt">Prompt Builder</option>
             </select>
             <button onClick={handleRefresh} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
               <RotateCcw className="w-5 h-5 text-slate-600" />
@@ -109,6 +110,24 @@ export default function App() {
         </div>
 
         <div className="relative h-64 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-4 overflow-auto">
+          
+          {/* NEW: The Smart Ghost Overlay */}
+          {isRecording && format === 'prompt' && !isProcessing && (
+            <div className="absolute inset-0 p-4 pointer-events-none text-slate-400 flex flex-col gap-2 z-10">
+              <p className="font-semibold text-slate-500 mb-1">Speak to fill out your prompt:</p>
+              <p>🎯 <span className="font-bold">Objective:</span> What is the ultimate goal?</p>
+              <p>📝 <span className="font-bold">Context:</span> What is the background info?</p>
+              <p>✅ <span className="font-bold">Task:</span> What exactly should the AI do?</p>
+              <p>🎨 <span className="font-bold">Format:</span> How should the final output look?</p>
+            </div>
+          )}
+
+          {/* EXISTING: Your Processing Animation */}
+          {isProcessing ? (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <p>Cleaning up your vibe...</p>
+            </div>
           {isProcessing ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
